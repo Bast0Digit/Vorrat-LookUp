@@ -1,0 +1,44 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans:
+    system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --color-background: #f5f6f8;
+  --color-foreground: #0f172a;
+}
+
+body {
+  background: var(--color-background);
+  color: var(--color-foreground);
+}
+
+@layer components {
+  .card {
+    @apply rounded-2xl border border-slate-200 bg-white shadow-sm;
+  }
+
+  /* Tailwind v4 @apply cannot reference other component classes, so each
+     button variant repeats the shared base utilities. */
+  .btn,
+  .btn-primary,
+  .btn-secondary,
+  .btn-danger {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors disabled:pointer-events-none disabled:opacity-50;
+  }
+  .btn-primary {
+    @apply bg-emerald-600 text-white hover:bg-emerald-700;
+  }
+  .btn-secondary {
+    @apply border border-slate-300 bg-white text-slate-700 hover:bg-slate-50;
+  }
+  .btn-danger {
+    @apply border border-red-200 bg-white text-red-600 hover:bg-red-50;
+  }
+
+  .input {
+    @apply w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100;
+  }
+  .label {
+    @apply mb-1 block text-sm font-medium text-slate-700;
+  }
+}

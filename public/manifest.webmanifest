@@ -1,0 +1,19 @@
+{
+  "name": "Vorrat-LookUp",
+  "short_name": "Vorrat",
+  "description": "Notvorrat verwalten: nichts läuft ab, immer genug auf Lager.",
+  "lang": "de",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f5f6f8",
+  "theme_color": "#059669",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
