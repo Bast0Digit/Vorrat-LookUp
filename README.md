@@ -35,9 +35,10 @@ Environment variables (see `.env.example`):
 
 ## Auth
 
-Supabase email **magic link** only. One shared household: every authenticated user
-sees and edits the same stock. Unauthenticated requests are redirected to `/login`
-by the Next.js proxy (`src/proxy.ts`).
+Supabase **email + password**. Closed app: there is no public sign-up - users are
+created in the Supabase dashboard (Authentication → Users). One shared household:
+every authenticated user sees and edits the same stock. Unauthenticated requests are
+redirected to `/login` by the Next.js proxy (`src/proxy.ts`).
 
 ## Database
 
