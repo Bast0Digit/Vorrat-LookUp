@@ -8,29 +8,34 @@ import { createClient } from '@/lib/supabase/client'
 function LoginForm() {
   const searchParams = useSearchParams()
   const [email, setEmail] = useState('')
-  const [status, setStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle')
+  const [password, setPassword] = useState('')
+  const [status, setStatus] = useState<'idle' | 'submitting' | 'error'>('idle')
   const [message, setMessage] = useState('')
 
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault()
-    setStatus('sending')
+    setStatus('submitting')
     setMessage('')
 
     const supabase = createClient()
-    const next = searchParams.get('redirect') ?? '/'
-    const redirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`
-
-    const { error } = await supabase.auth.signInWithOtp({
+    const { error } = await supabase.auth.signInWithPassword({
       email: email.trim(),
-      options: { emailRedirectTo: redirectTo },
+      password,
     })
 
     if (error) {
       setStatus('error')
-      setMessage(error.message)
+      setMessage(
+        error.message === 'Invalid login credentials'
+          ? 'E-Mail oder Passwort ist falsch.'
+          : error.message,
+      )
       return
     }
-    setStatus('sent')
+
+    // Session cookies are set; full navigation so the server picks them up.
+    const next = searchParams.get('redirect') ?? '/'
+    window.location.assign(next.startsWith('/') ? next : '/')
   }
 
   return (
@@ -38,46 +43,54 @@ function LoginForm() {
       <div className="mb-6 flex flex-col items-center gap-2 text-center">
         <span aria-hidden className="text-4xl">🥫</span>
         <h1 className="text-xl font-bold text-slate-900">Vorrat</h1>
-        <p className="text-sm text-slate-500">
-          Melde dich mit deiner E-Mail an. Wir senden dir einen Anmeldelink.
-        </p>
+        <p className="text-sm text-slate-500">Melde dich mit E-Mail und Passwort an.</p>
       </div>
 
-      {status === 'sent' ? (
-        <div className="rounded-lg bg-emerald-50 p-4 text-center text-sm text-emerald-800">
-          <p className="font-medium">E-Mail unterwegs ✉️</p>
-          <p className="mt-1">
-            Öffne den Link in <strong>{email}</strong>, um dich anzumelden.
-          </p>
+      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+        <div>
+          <label htmlFor="email" className="label">
+            E-Mail-Adresse
+          </label>
+          <input
+            id="email"
+            type="email"
+            required
+            autoComplete="email"
+            inputMode="email"
+            placeholder="name@beispiel.de"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="input"
+          />
         </div>
-      ) : (
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          <div>
-            <label htmlFor="email" className="label">
-              E-Mail-Adresse
-            </label>
-            <input
-              id="email"
-              type="email"
-              required
-              autoComplete="email"
-              inputMode="email"
-              placeholder="name@beispiel.de"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="input"
-            />
-          </div>
 
-          {status === 'error' ? (
-            <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{message}</p>
-          ) : null}
+        <div>
+          <label htmlFor="password" className="label">
+            Passwort
+          </label>
+          <input
+            id="password"
+            type="password"
+            required
+            autoComplete="current-password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="input"
+          />
+        </div>
 
-          <button type="submit" className="btn-primary" disabled={status === 'sending'}>
-            {status === 'sending' ? 'Wird gesendet …' : 'Anmeldelink senden'}
-          </button>
-        </form>
-      )}
+        {status === 'error' ? (
+          <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{message}</p>
+        ) : null}
+
+        <button type="submit" className="btn-primary" disabled={status === 'submitting'}>
+          {status === 'submitting' ? 'Anmelden …' : 'Anmelden'}
+        </button>
+      </form>
+
+      <p className="mt-4 text-center text-xs text-slate-400">
+        Zugänge werden vom Haushalt verwaltet.
+      </p>
     </div>
   )
 }
