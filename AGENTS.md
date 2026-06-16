@@ -40,12 +40,16 @@ Then add `@supabase/supabase-js` and `@supabase/ssr`. Keep `.env.example`, the d
 - **Shared Supabase project.** This app uses **only the `vorrat` schema**.
 - **Never read, write, or alter anything outside `vorrat`** - the same project hosts
   an unrelated intelligence system in `public`. Do not touch it.
-- The schema does **not exist yet**. Create it as a Supabase migration per the data
-  model in the spec. After creating the schema, it must be added to the project's
-  **Exposed schemas** (Supabase Dashboard > Project Settings > API) so the JS client
-  can reach it.
+- **The `vorrat` schema ALREADY EXISTS and is exposed to the API.** All tables, RLS,
+  the `item_overview` view and the seeded categories are created. The exact structure
+  is in [`docs/SCHEMA.sql`](docs/SCHEMA.sql) (reference - already applied, do not
+  re-run). **Do not recreate the schema.** Build against the existing tables.
+- **Generate** TypeScript types from the live schema and keep them in
+  `src/lib/supabase/types.ts`:
+  `supabase gen types typescript --project-id ggaiorygjkjhbfkvrfmb --schema vorrat`.
 - Scope the Supabase client to the schema: `createClient(url, key, { db: { schema: 'vorrat' } })`.
-- Generate DB types with the Supabase CLI and keep them in `src/lib/supabase/types.ts`.
+- If you genuinely need a schema change later, add a new migration under
+  `supabase/migrations/` - never edit the existing structure in place.
 
 ## Auth model (MVP)
 

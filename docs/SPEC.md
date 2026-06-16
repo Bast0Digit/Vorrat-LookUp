@@ -8,10 +8,11 @@ feature and data-model specification the build follows.
 - Email magic-link login (Supabase Auth). One shared household stock - every logged-in
   member sees and edits the same data. No per-user separation in the MVP.
 
-## Data model (to be created in schema `vorrat`)
+## Data model (already exists in schema `vorrat`)
 
-The cloud session creates this as a Supabase migration. **All objects live in the
-`vorrat` schema**, never in `public`.
+The schema is **already created and exposed** in Supabase - exact DDL in
+[`SCHEMA.sql`](SCHEMA.sql). Build against it; generate types from the live schema.
+**All objects live in the `vorrat` schema**, never in `public`.
 
 - **categories** - `name`, `icon`, `sort_order`. Seed with: Lebensmittel, Wasser,
   Hygiene, Medizin & Erste Hilfe, Energie (Strom/Holz), Garten & Saatgut, Sonstiges.
@@ -47,8 +48,9 @@ anonymous users none (shared household). Tighten later if needed.
 
 ## Milestones
 
-- **M1 - Data layer + list.** Migration for the `vorrat` schema, Supabase client
-  helpers, auth gate, item list grouped by category from `item_overview` (read-only).
+- **M1 - Data layer + list.** Supabase client helpers (schema already exists),
+  generated types, auth gate, item list grouped by category from `item_overview`
+  (read-only).
 - **M2 - Dashboard.** Expiring-soon and below-target sections + summary tiles.
 - **M3 - Mutations.** Add/edit items, add/consume/delete stock batches, shopping list.
 - **M4 - Polish.** Empty/loading states, mobile layout, installable PWA, optional push
