@@ -79,6 +79,10 @@ group by i.id;
 
 grant select, insert, update, delete on all tables in schema vorrat to authenticated;
 grant all on all tables in schema vorrat to service_role;
+-- Views are not covered by a one-time "on all tables" grant when recreated later,
+-- so grant the view explicitly (see migration 0003):
+grant select on vorrat.item_overview to authenticated;
+grant all    on vorrat.item_overview to service_role;
 
 -- RLS: shared household. authenticated = full access, anonymous = none.
 alter table vorrat.categories      enable row level security;
