@@ -50,6 +50,11 @@ export type Database = {
           barcode: string | null
           target_stock: number
           notes: string | null
+          // v2 packaging + reach:
+          pack_size: number
+          base_unit: string | null
+          daily_use_per_person: number | null
+          is_asset: boolean
           created_at: string
           updated_at: string
         }
@@ -61,6 +66,10 @@ export type Database = {
           barcode?: string | null
           target_stock?: number
           notes?: string | null
+          pack_size?: number
+          base_unit?: string | null
+          daily_use_per_person?: number | null
+          is_asset?: boolean
           created_at?: string
           updated_at?: string
         }
@@ -72,6 +81,10 @@ export type Database = {
           barcode?: string | null
           target_stock?: number
           notes?: string | null
+          pack_size?: number
+          base_unit?: string | null
+          daily_use_per_person?: number | null
+          is_asset?: boolean
           created_at?: string
           updated_at?: string
         }
@@ -152,6 +165,24 @@ export type Database = {
           },
         ]
       }
+      settings: {
+        Row: {
+          id: number
+          household_size: number
+          updated_at: string
+        }
+        Insert: {
+          id?: number
+          household_size?: number
+          updated_at?: string
+        }
+        Update: {
+          id?: number
+          household_size?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       // security_invoker view: current stock + status per item.
@@ -164,7 +195,12 @@ export type Database = {
           category_id: string | null
           unit: string | null
           target_stock: number | null
+          pack_size: number | null
+          base_unit: string | null
+          daily_use_per_person: number | null
+          is_asset: boolean | null
           current_stock: number | null
+          base_stock: number | null
           next_expiry: string | null
           to_buy: number | null
         }
@@ -206,7 +242,10 @@ export type ViewRow<T extends keyof VorratSchema['Views']> =
 export type Category = Tables<'categories'>
 export type Item = Tables<'items'>
 export type StockEntry = Tables<'stock_entries'>
+export type ConsumptionLog = Tables<'consumption_log'>
+export type Settings = Tables<'settings'>
 export type ItemInsert = TablesInsert<'items'>
 export type ItemUpdate = TablesUpdate<'items'>
 export type StockEntryInsert = TablesInsert<'stock_entries'>
+export type ConsumptionLogInsert = TablesInsert<'consumption_log'>
 export type ItemOverviewRow = ViewRow<'item_overview'>
