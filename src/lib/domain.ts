@@ -9,7 +9,13 @@ export type ItemOverview = {
   categoryId: string | null
   unit: string
   targetStock: number
-  currentStock: number
+  // v2 packaging + reach:
+  packSize: number
+  baseUnit: string | null
+  dailyUsePerPerson: number | null
+  isAsset: boolean
+  currentStock: number // in packs/count
+  baseStock: number // current_stock * pack_size, in base_unit
   nextExpiry: string | null
   toBuy: number
 }
@@ -21,7 +27,15 @@ export function normalizeOverview(row: ItemOverviewRow): ItemOverview {
     categoryId: row.category_id ?? null,
     unit: row.unit ?? 'Stück',
     targetStock: Number(row.target_stock ?? 0),
+    packSize: Number(row.pack_size ?? 1),
+    baseUnit: row.base_unit ?? null,
+    dailyUsePerPerson:
+      row.daily_use_per_person === null || row.daily_use_per_person === undefined
+        ? null
+        : Number(row.daily_use_per_person),
+    isAsset: row.is_asset ?? false,
     currentStock: Number(row.current_stock ?? 0),
+    baseStock: Number(row.base_stock ?? 0),
     nextExpiry: row.next_expiry ?? null,
     toBuy: Number(row.to_buy ?? 0),
   }

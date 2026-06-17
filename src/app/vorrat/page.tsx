@@ -1,13 +1,13 @@
 import Link from 'next/link'
 
-import { getItemsGrouped } from '@/lib/data'
+import { getItemsGrouped, getSettings } from '@/lib/data'
 import { EmptyState, PageHeader } from '@/components/ui'
 import { VorratList } from './VorratList'
 
 export const dynamic = 'force-dynamic'
 
 export default async function VorratPage() {
-  const groups = await getItemsGrouped()
+  const [groups, { householdSize }] = await Promise.all([getItemsGrouped(), getSettings()])
 
   return (
     <div>
@@ -33,7 +33,7 @@ export default async function VorratPage() {
           }
         />
       ) : (
-        <VorratList groups={groups} />
+        <VorratList groups={groups} householdSize={householdSize} />
       )}
     </div>
   )

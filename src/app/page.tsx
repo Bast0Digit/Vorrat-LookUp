@@ -1,11 +1,71 @@
 import Link from 'next/link'
 
 import { getDashboardData, type ExpiringEntry, type ShoppingItem } from '@/lib/data'
+import type { ReachSummary } from '@/lib/reach'
+import { REACH_TARGET_DAYS, REACH_WARN_DAYS } from '@/lib/constants'
 import { daysUntil, formatDate, formatExpiryRelative, formatNumber, formatQuantity } from '@/lib/format'
 import { expiryLevel } from '@/lib/status'
 import { EmptyState, PageHeader, SectionTitle, StatusBadge, Tile } from '@/components/ui'
 
 export const dynamic = 'force-dynamic'
+
+function reachTone(days: number | null): 'neutral' | 'ok' | 'warn' | 'critical' {
+  if (days === null) return 'neutral'
+  if (days >= REACH_TARGET_DAYS) return 'ok'
+  if (days >= REACH_WARN_DAYS) return 'warn'
+  return 'critical'
+}
+
+const TONE_TEXT = {
+  neutral: 'text-slate-700',
+  ok: 'text-emerald-600',
+  warn: 'text-amber-600',
+  critical: 'text-red-600',
+} as const
+
+const TONE_BORDER = {
+  neutral: 'border-slate-300',
+  ok: 'border-emerald-500',
+  warn: 'border-amber-500',
+  critical: 'border-red-500',
+} as const
+
+function ReachBlock({ reach, householdSize }: { reach: ReachSummary; householdSize: number }) {
+  const tone = reachTone(reach.minDays)
+  return (
+    <section className={`card mb-6 border-l-4 p-5 ${TONE_BORDER[tone]}`}>
+      <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Notvorrat</p>
+      <div className="mt-1 flex items-baseline gap-2">
+        <span className={`text-4xl font-bold tabular-nums ${TONE_TEXT[tone]}`}>
+          {reach.minDays !== null ? `~${reach.minDays}` : '—'}
+        </span>
+        <span className="text-lg text-slate-600">Tage</span>
+      </div>
+      <p className="mt-0.5 text-sm text-slate-500">
+        Reicht (Engpass) für {householdSize} Personen · Ziel {REACH_TARGET_DAYS} Tage
+      </p>
+
+      {reach.minDays === null ? (
+        <p className="mt-3 text-sm text-slate-400">
+          Noch keine Reichweite berechenbar. Hinterlege bei Artikeln „Bedarf pro Person/Tag“ und eine Basiseinheit.
+        </p>
+      ) : (
+        <div className="mt-3 flex flex-wrap gap-2">
+          {reach.breakdown.map((b) => (
+            <span
+              key={b.categoryName}
+              className={`rounded-full px-2.5 py-1 text-xs font-medium ${
+                TONE_TEXT[reachTone(b.days)]
+              } bg-slate-50 ring-1 ring-inset ring-slate-200`}
+            >
+              {b.categoryName}: {b.days} T
+            </span>
+          ))}
+        </div>
+      )}
+    </section>
+  )
+}
 
 function ExpiringRow({ entry }: { entry: ExpiringEntry }) {
   const days = daysUntil(entry.expiryDate)
@@ -55,11 +115,13 @@ function BuyRow({ item }: { item: ShoppingItem }) {
 }
 
 export default async function DashboardPage() {
-  const { expiring, toBuy, totals } = await getDashboardData()
+  const { expiring, toBuy, totals, reach, householdSize } = await getDashboardData()
 
   return (
     <div>
-      <PageHeader title="Übersicht" subtitle="Was bald abläuft und was nachgekauft werden muss." />
+      <PageHeader title="Übersicht" subtitle="Notvorrat auf einen Blick." />
+
+      <ReachBlock reach={reach} householdSize={householdSize} />
 
       <div className="grid grid-cols-3 gap-3">
         <Tile label="Artikel" value={totals.items} />

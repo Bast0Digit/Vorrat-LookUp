@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Node test files run via `pnpm test`, not type-checked by the Next build.
+    "**/*.test.ts",
   ]),
 ]);
 
