@@ -12,7 +12,7 @@ export default async function NewItemPage() {
     <div>
       <BackLink href="/vorrat">Vorrat</BackLink>
       <div className="mt-3">
-        <PageHeader title="Neuer Artikel" subtitle="Stammdaten und Sollbestand festlegen." />
+        <PageHeader title="Neuer Artikel" subtitle="Stammdaten, Sollbestand und optional ein Anfangsbestand mit MHD." />
       </div>
       <div className="card p-5">
         <ItemForm
@@ -20,6 +20,7 @@ export default async function NewItemPage() {
           categories={categories.map((c) => ({ id: c.id, name: c.name, icon: c.icon }))}
           submitLabel="Anlegen"
           cancelHref="/vorrat"
+          showInitialStock
         />
       </div>
     </div>
