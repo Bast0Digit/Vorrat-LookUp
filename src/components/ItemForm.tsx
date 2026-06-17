@@ -4,7 +4,7 @@ import { useActionState } from 'react'
 import Link from 'next/link'
 
 import { type ActionState, initialActionState } from '@/lib/action-state'
-import { UNITS } from '@/lib/constants'
+import { BASE_UNITS, UNITS } from '@/lib/constants'
 
 type CategoryOption = { id: string; name: string; icon: string | null }
 
@@ -15,6 +15,15 @@ export type ItemFormValues = {
   target_stock: number
   barcode: string | null
   notes: string | null
+  pack_size: number
+  base_unit: string | null
+  daily_use_per_person: number | null
+  is_asset: boolean
+}
+
+function numToInput(value: number | null | undefined): string {
+  if (value === null || value === undefined) return ''
+  return String(value).replace('.', ',')
 }
 
 export function ItemForm({
@@ -65,27 +74,83 @@ export function ItemForm({
         </div>
 
         <div>
-          <label htmlFor="unit" className="label">Einheit</label>
-          <select id="unit" name="unit" defaultValue={defaultValues?.unit ?? 'Stück'} className="input">
+          <label htmlFor="unit" className="label">Einheit (Packung/Stück)</label>
+          <input
+            id="unit"
+            name="unit"
+            list="units"
+            defaultValue={defaultValues?.unit ?? 'Stück'}
+            placeholder="Stück"
+            className="input"
+          />
+          <datalist id="units">
             {UNITS.map((u) => (
-              <option key={u} value={u}>{u}</option>
+              <option key={u} value={u} />
             ))}
-          </select>
+          </datalist>
         </div>
       </div>
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label htmlFor="target_stock" className="label">Sollbestand (Minimum)</label>
+          <label htmlFor="pack_size" className="label">Packungsinhalt</label>
+          <input
+            id="pack_size"
+            name="pack_size"
+            type="text"
+            inputMode="decimal"
+            defaultValue={numToInput(defaultValues?.pack_size ?? 1)}
+            className="input"
+          />
+          <p className="mt-1 text-xs text-slate-400">Inhalt je Packung, z. B. 500</p>
+        </div>
+        <div>
+          <label htmlFor="base_unit" className="label">Basiseinheit</label>
+          <input
+            id="base_unit"
+            name="base_unit"
+            list="base-units"
+            defaultValue={defaultValues?.base_unit ?? ''}
+            placeholder="g, ml, l, kg …"
+            className="input"
+          />
+          <datalist id="base-units">
+            {BASE_UNITS.map((u) => (
+              <option key={u} value={u} />
+            ))}
+          </datalist>
+          <p className="mt-1 text-xs text-slate-400">leer = reine Zähleinheit</p>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label htmlFor="target_stock" className="label">Sollbestand (Packungen)</label>
           <input
             id="target_stock"
             name="target_stock"
             type="text"
             inputMode="decimal"
-            defaultValue={defaultValues?.target_stock?.toString() ?? '0'}
+            defaultValue={numToInput(defaultValues?.target_stock ?? 0)}
             className="input"
           />
         </div>
+        <div>
+          <label htmlFor="daily_use_per_person" className="label">Bedarf pro Person/Tag</label>
+          <input
+            id="daily_use_per_person"
+            name="daily_use_per_person"
+            type="text"
+            inputMode="decimal"
+            defaultValue={numToInput(defaultValues?.daily_use_per_person)}
+            placeholder="in Basiseinheit"
+            className="input"
+          />
+          <p className="mt-1 text-xs text-slate-400">für „reicht noch …“; leer = keine Reichweite</p>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
         <div>
           <label htmlFor="barcode" className="label">Barcode</label>
           <input
@@ -96,6 +161,15 @@ export function ItemForm({
             className="input"
           />
         </div>
+        <label className="flex items-center gap-2 self-end pb-2 text-sm text-slate-700">
+          <input
+            type="checkbox"
+            name="is_asset"
+            defaultChecked={defaultValues?.is_asset ?? false}
+            className="h-4 w-4 rounded border-slate-300"
+          />
+          Anlage (PV/Speicher: kein MHD/Reichweite)
+        </label>
       </div>
 
       <div>

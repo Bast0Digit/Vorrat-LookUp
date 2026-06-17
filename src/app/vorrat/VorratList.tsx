@@ -4,14 +4,32 @@ import { useMemo, useState } from 'react'
 import Link from 'next/link'
 
 import type { ItemGroup } from '@/lib/data'
+import type { ItemOverview } from '@/lib/domain'
 import { NO_CATEGORY_ICON, NO_CATEGORY_LABEL } from '@/lib/constants'
 import { formatDate, formatNumber } from '@/lib/format'
+import { itemReachDays } from '@/lib/reach'
 import { itemStatus } from '@/lib/status'
-import { EmptyState, StatusBadge, StatusDot } from '@/components/ui'
+import { EmptyState, StatusDot } from '@/components/ui'
+import { Stepper } from '@/components/Stepper'
 
 const ALL = 'all'
 
-export function VorratList({ groups }: { groups: ItemGroup[] }) {
+function subline(item: ItemOverview, householdSize: number): string {
+  const parts = [`${formatNumber(item.currentStock)}/${formatNumber(item.targetStock)} ${item.unit}`]
+  if (item.baseUnit) parts.push(`${formatNumber(item.baseStock)} ${item.baseUnit}`)
+  if (item.nextExpiry) parts.push(`MHD ${formatDate(item.nextExpiry)}`)
+  const reach = itemReachDays(item, householdSize)
+  if (reach !== null) parts.push(`reicht ~${reach} T`)
+  return parts.join(' · ')
+}
+
+export function VorratList({
+  groups,
+  householdSize,
+}: {
+  groups: ItemGroup[]
+  householdSize: number
+}) {
   const [query, setQuery] = useState('')
   const [category, setCategory] = useState<string>(ALL)
 
@@ -69,21 +87,24 @@ export function VorratList({ groups }: { groups: ItemGroup[] }) {
                 {g.items.map((item) => {
                   const status = itemStatus(item)
                   return (
-                    <li key={item.id}>
+                    <li key={item.id} className="flex items-center gap-3 px-4 py-3">
                       <Link
                         href={`/vorrat/${item.id}`}
-                        className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-slate-50"
+                        className="flex min-w-0 flex-1 items-center gap-3 transition-opacity hover:opacity-70"
                       >
                         <StatusDot level={status.level} />
-                        <div className="min-w-0 flex-1">
+                        <div className="min-w-0">
                           <p className="truncate font-medium text-slate-900">{item.name}</p>
-                          <p className="truncate text-xs text-slate-500">
-                            {formatNumber(item.currentStock)} / {formatNumber(item.targetStock)} {item.unit}
-                            {item.nextExpiry ? ` · MHD ${formatDate(item.nextExpiry)}` : ''}
-                          </p>
+                          <p className="truncate text-xs text-slate-500">{subline(item, householdSize)}</p>
                         </div>
-                        <StatusBadge level={status.level}>{status.label}</StatusBadge>
                       </Link>
+                      {item.isAsset ? (
+                        <span className="shrink-0 rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-500">
+                          Anlage
+                        </span>
+                      ) : (
+                        <Stepper itemId={item.id} packs={item.currentStock} unit={item.unit} />
+                      )}
                     </li>
                   )
                 })}

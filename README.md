@@ -32,6 +32,7 @@ Environment variables (see `.env.example`):
 | `pnpm build` | Production build |
 | `pnpm start` | Run the production build |
 | `pnpm lint` | ESLint |
+| `pnpm test` | Reach-helper unit tests (Node `node:test`) |
 
 ## Auth
 
@@ -55,12 +56,18 @@ the `public` schema. The schema already exists in Supabase; this app builds agai
 
 ```
 src/
-  app/                 # routes: dashboard, vorrat, item detail, einkaufsliste, login, auth
-  components/          # Nav, forms, status/UI primitives
+  app/                 # routes: dashboard, vorrat, item detail, wasser, energie,
+                       #         lebensmittel-ablauf, einkaufsliste, import,
+                       #         einstellungen, login, auth
+  components/          # Nav, forms, +/- stepper, status/UI primitives
   lib/
     supabase/          # browser/server clients, session helper, hand-written types
     data.ts            # read helpers (Server Components)
     actions.ts         # mutations (Server Actions)
+    import.ts          # pure CSV/XLSX parsing + validation
+    import-actions.ts  # server-side import (SheetJS) parse/preview/commit
+    reach.ts           # pure reach helper (+ reach.test.ts)
+    parse.ts           # German decimal/date parsing
     domain.ts status.ts format.ts constants.ts
   proxy.ts             # auth gate + Supabase session refresh
 ```
@@ -72,7 +79,23 @@ src/
 - **Artikel-Detail** - edit master data, add stock batches, consume/delete batches
   (FIFO: soonest expiry first), delete item.
 - **Einkaufsliste** - everything below target, checkable, copy as plain text.
-- PWA manifest for mobile install; responsive layout with a mobile tab bar.
+- PWA manifest for mobile install; responsive layout.
+
+## v2 (units, reach, import, views)
+
+- **Packaging model** - items carry `pack_size` + `base_unit` (e.g. Nudeln: 1 Packung =
+  500 g); a stock batch is N packs sharing one MHD. Stock shows packs **and** base amount.
+- **Reach** - "reicht noch ~X Tage" from `daily_use_per_person` × household size
+  (`/einstellungen`). Pure helper in `lib/reach.ts` (unit-tested). The home dashboard shows
+  the bottleneck reach with a per-resource breakdown.
+- **+/- stepper** - on the item detail and each list row: `-` consumes one pack FIFO
+  (logs to `consumption_log`), `+` adds one pack asking only for the new MHD and merges
+  same-MHD batches. Item detail shows a short consumption history.
+- **Import** (`/import`) - bulk create/update from `.csv` **and** `.xlsx` (SheetJS):
+  parse + validate → preview → confirm → commit; upsert by name within category; German
+  decimals and `DD.MM.YYYY`/ISO dates. Template at `public/import-template.csv`.
+- **Views** - `/wasser` (litres + reach), `/energie` (Anlagen vs Brennstoff-Vorrat),
+  `/lebensmittel-ablauf` (food expiry, 30/60/90-day horizon).
 
 ## Documentation
 
