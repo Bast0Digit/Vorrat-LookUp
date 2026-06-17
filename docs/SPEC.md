@@ -5,8 +5,18 @@ feature and data-model specification the build follows.
 
 ## Users & auth
 
-- Email magic-link login (Supabase Auth). One shared household stock - every logged-in
-  member sees and edits the same data. No per-user separation in the MVP.
+- Email + **password** login (Supabase `signInWithPassword`; magic link was dropped due
+  to redirect issues). One shared household account - every logged-in member sees and
+  edits the same data. No per-user separation, no public signup.
+
+## v2 (2026-06) - in active scope
+
+The features below were the original "Phase 2" and are now being built in one PR. The
+full work order is in [`CHANGE-REQUEST-2026-06.md`](CHANGE-REQUEST-2026-06.md):
+packaging/units model, per-person reach ("reicht noch ~X Tage"), `+/-` stock stepper
+with consumption logging, Excel/CSV import, dedicated Wasser/Energie/Lebensmittel-Ablauf
+views, household settings, and a Notvorrats-Dashboard. The data model below reflects the
+v2 schema (see [`SCHEMA.sql`](SCHEMA.sql)).
 
 ## Data model (already exists in schema `vorrat`)
 
@@ -16,16 +26,19 @@ The schema is **already created and exposed** in Supabase - exact DDL in
 
 - **categories** - `name`, `icon`, `sort_order`. Seed with: Lebensmittel, Wasser,
   Hygiene, Medizin & Erste Hilfe, Energie (Strom/Holz), Garten & Saatgut, Sonstiges.
-- **items** - product master data: `name`, `category_id`, `unit` (Stück/kg/l/Packung),
-  `barcode?`, `target_stock` (minimum we want to keep), `notes`, timestamps.
-- **stock_entries** - one row per batch/lot: `item_id`, `quantity`, `expiry_date?`,
-  `location` (Keller/Garage/...), `opened`. Multiple entries per item enable FIFO +
-  per-batch expiry.
-- **consumption_log** - phase 2, create the table now: `item_id`, `quantity`,
-  `consumed_at`.
-- **item_overview** (view, `security_invoker`) - per item: `current_stock`
-  (sum of entries), `next_expiry` (earliest expiry), `to_buy`
-  (max(target_stock - current_stock, 0)).
+- **items** - product master data: `name`, `category_id`, `unit` (count/pack unit),
+  `barcode?`, `target_stock` (minimum, in packs), `notes`, plus v2: `pack_size`
+  (content per pack), `base_unit` (g/ml/l/kg/Ster/kWh), `daily_use_per_person`
+  (for reach), `is_asset` (PV/solar/battery), timestamps.
+- **stock_entries** - one row per batch/lot = **N packs sharing one MHD**: `item_id`,
+  `quantity` (packs), `expiry_date?`, `location`, `opened`. Enables FIFO + per-batch
+  expiry without entering packs individually.
+- **consumption_log** - exists; every `-` (entnehmen) writes a row (`item_id`,
+  `quantity`, `consumed_at`), quantity in packs.
+- **settings** - single row, `household_size` (for the reach calculation).
+- **item_overview** (view, `security_invoker`) - per item: `current_stock` (packs),
+  `base_stock` (= current_stock x pack_size), `next_expiry`, `to_buy`, plus the v2
+  item columns.
 
 RLS: enable on all tables. MVP policy = authenticated users have full access,
 anonymous users none (shared household). Tighten later if needed.
@@ -58,13 +71,18 @@ anonymous users none (shared household). Tighten later if needed.
 
 Ship M1-M3 as the usable MVP.
 
-## Phase 2 (later)
+## v2 details
 
-- Barcode/EAN scan on mobile -> prefill name via OpenFoodFacts.
-- Consumption logging + burn-rate estimate -> "reicht noch ~X Tage".
-- Target-stock calculator from persons x daily need x days.
-- Dedicated views for Wasser (l/person/day), Energie (Holz/Strom), Garten
-  (sowing/harvest calendar).
+See [`CHANGE-REQUEST-2026-06.md`](CHANGE-REQUEST-2026-06.md) for the full spec of the
+units model, reach, `+/-` stepper + consumption logging, Excel/CSV import, the
+Wasser/Energie/Lebensmittel-Ablauf views, household settings, and the
+Notvorrats-Dashboard.
+
+## Phase 3 (later)
+
+- Barcode/EAN scan on mobile -> prefill name via OpenFoodFacts (`items.barcode` exists).
+- Burn-rate reach from the actual `consumption_log` (vs the planned per-person rate).
+- Dedicated Garten view (sowing/harvest calendar).
 
 ## Acceptance criteria (MVP done)
 

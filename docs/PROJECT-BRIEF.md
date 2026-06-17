@@ -28,9 +28,19 @@ Mini behind Cloudflare; during development it runs locally against Supabase Clou
 
 - **This is the "simple" of the two sibling projects** (see Strategy). Keep it lean.
   A clean CRUD + two calculations (FIFO rotation, target-vs-current) is the core.
-- MVP auth: Supabase email magic link, one shared household (every logged-in member
-  sees the same stock). No per-user separation, no OAuth.
+- Auth: Supabase email + **password** (magic link was dropped due to redirect issues),
+  one shared household account (every logged-in member sees the same stock). No
+  per-user separation, no OAuth, no public signup.
 - Mobile-installable PWA, but a clean responsive layout is enough.
+
+## v2 (2026-06)
+
+The MVP shipped (list, dashboard, item detail, shopping list, password auth, deployed
+on the Mac Mini behind `vorrat.tradlergo.app`). v2 adds a packaging/units model,
+per-person reach ("reicht noch ~X Tage"), a `+/-` stock stepper with consumption
+logging, Excel/CSV bulk import, dedicated Wasser/Energie/Lebensmittel-Ablauf views,
+household settings, and a Notvorrats-Dashboard. Full work order:
+[`CHANGE-REQUEST-2026-06.md`](CHANGE-REQUEST-2026-06.md).
 
 ## Strategy / context
 

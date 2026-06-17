@@ -1,0 +1,5 @@
+kategorie;name;einheit;packungsinhalt;basiseinheit;sollbestand;bedarf_pro_person_tag;barcode;notiz;menge;mhd;lagerort
+Lebensmittel;Nudeln;Packung;500;g;10;75;;Hartweizengriess;6;20.06.2026;Speisekammer
+Wasser;Trinkwasser 1,5l;Flasche;1,5;l;40;2,5;;stilles Wasser;24;;Keller
+Lebensmittel;Reis;Sack;5;kg;4;60;;Langkorn;2;31.12.2027;Keller
+Hygiene;Toilettenpapier;Packung;10;Stück;3;;;;2;;Garage
