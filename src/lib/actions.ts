@@ -10,7 +10,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import type { ItemInsert, StockEntry, StockEntryInsert } from '@/lib/supabase/types'
 import type { ActionState } from '@/lib/action-state'
-import { parseDecimal } from '@/lib/parse'
+import { parseDecimal, parseFlexibleDate } from '@/lib/parse'
 
 function getString(formData: FormData, key: string): string {
   const value = formData.get(key)
@@ -86,6 +86,19 @@ export async function createItem(
     .select('id')
     .single()
   if (error) return { ok: false, error: error.message }
+
+  // Optional initial stock batch from the create form: one MHD per product.
+  // (The form only shows these fields for non-assets.)
+  const menge = parseDecimal(getString(formData, 'menge'))
+  if (!parsed.values.is_asset && menge !== null && !Number.isNaN(menge) && menge > 0) {
+    const mhd = parseFlexibleDate(getString(formData, 'mhd'))
+    await supabase.from('stock_entries').insert({
+      item_id: data.id,
+      quantity: menge,
+      expiry_date: mhd.kind === 'date' ? mhd.iso : null,
+      location: getString(formData, 'lagerort') || null,
+    })
+  }
 
   revalidateStock()
   redirect(`/vorrat/${data.id}`)

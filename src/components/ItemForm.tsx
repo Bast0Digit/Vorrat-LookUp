@@ -1,10 +1,10 @@
 'use client'
 
-import { useActionState } from 'react'
+import { useActionState, useState } from 'react'
 import Link from 'next/link'
 
 import { type ActionState, initialActionState } from '@/lib/action-state'
-import { BASE_UNITS, UNITS } from '@/lib/constants'
+import { BASE_UNITS, LOCATIONS, UNITS } from '@/lib/constants'
 
 type CategoryOption = { id: string; name: string; icon: string | null }
 
@@ -32,14 +32,18 @@ export function ItemForm({
   defaultValues,
   submitLabel,
   cancelHref,
+  showInitialStock = false,
 }: {
   action: (prev: ActionState, formData: FormData) => Promise<ActionState>
   categories: CategoryOption[]
   defaultValues?: Partial<ItemFormValues>
   submitLabel: string
   cancelHref: string
+  // When true (create form), show an optional initial-stock block (Menge + MHD).
+  showInitialStock?: boolean
 }) {
   const [state, formAction, pending] = useActionState(action, initialActionState)
+  const [isAsset, setIsAsset] = useState(defaultValues?.is_asset ?? false)
 
   return (
     <form action={formAction} className="flex flex-col gap-4">
@@ -123,6 +127,47 @@ export function ItemForm({
         </div>
       </div>
 
+      {showInitialStock && !isAsset ? (
+        <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+          <p className="mb-3 text-sm font-medium text-slate-700">Anfangsbestand (optional)</p>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label htmlFor="menge" className="label">Menge (Packungen)</label>
+              <input
+                id="menge"
+                name="menge"
+                type="text"
+                inputMode="decimal"
+                placeholder="z. B. 6"
+                className="input"
+              />
+            </div>
+            <div>
+              <label htmlFor="mhd" className="label">MHD (Mindesthaltbarkeitsdatum)</label>
+              <input id="mhd" name="mhd" type="date" className="input" />
+            </div>
+          </div>
+          <div className="mt-3">
+            <label htmlFor="lagerort" className="label">Lagerort</label>
+            <input
+              id="lagerort"
+              name="lagerort"
+              list="locations"
+              placeholder="z. B. Keller"
+              className="input"
+            />
+            <datalist id="locations">
+              {LOCATIONS.map((l) => (
+                <option key={l} value={l} />
+              ))}
+            </datalist>
+          </div>
+          <p className="mt-2 text-xs text-slate-400">
+            Legt direkt eine erste Charge an. Menge leer = kein Anfangsbestand.
+          </p>
+        </div>
+      ) : null}
+
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label htmlFor="target_stock" className="label">Sollbestand (Packungen)</label>
@@ -165,7 +210,8 @@ export function ItemForm({
           <input
             type="checkbox"
             name="is_asset"
-            defaultChecked={defaultValues?.is_asset ?? false}
+            checked={isAsset}
+            onChange={(e) => setIsAsset(e.target.checked)}
             className="h-4 w-4 rounded border-slate-300"
           />
           Anlage (PV/Speicher: kein MHD/Reichweite)
